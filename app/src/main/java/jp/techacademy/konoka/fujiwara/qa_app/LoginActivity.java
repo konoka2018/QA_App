@@ -147,33 +147,43 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        // UIの準備
+        /* UIの準備
+        ------------------------------------------------------------------------*/
         setTitle("ログイン");
 
+        //各UIのインスタンスをメンバ変数に保持
         mEmailEditText = (EditText) findViewById(R.id.emailText);
         mPasswordEditText = (EditText) findViewById(R.id.passwordText);
         mNameEditText = (EditText) findViewById(R.id.nameText);
 
+
         mProgress = new ProgressDialog(this);
         mProgress.setMessage("処理中...");
 
+
+         /* アカウント作成ボタンを押した時の処理
+        ------------------------------------------------------------------------*/
         Button createButton = (Button) findViewById(R.id.createButton);
         createButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // キーボードが出てたら閉じる
+
+                //アカウント作成ボタンをタップした時には、 InputMethodManager の
+                // hideSoftInputFromWindow メソッドを呼び出してキーボードを閉じる。
                 InputMethodManager im = (InputMethodManager)getSystemService(Context
                         .INPUT_METHOD_SERVICE);
                 im.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+
 
                 String email = mEmailEditText.getText().toString();
                 String password = mPasswordEditText.getText().toString();
                 String name = mNameEditText.getText().toString();
 
                 if (email.length() != 0 && password.length() >= 6 && name.length() != 0) {
-                    // ログイン時に表示名を保存するようにフラグを立てる
+                    //ログイン時に表示名を保存するようにmIsCreateAccountにtrueを設定
                     mIsCreateAccount = true;
 
+                    //アカウント作成を行うcreateAccountメソッド
                     createAccount(email, password);
                 } else {
                     // エラーを表示する
@@ -182,6 +192,8 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        /* アカウント作成ボタンを押した時の処理
+        ------------------------------------------------------------------------*/
         Button loginButton = (Button) findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -205,10 +217,18 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
      /*オンクリエイトはここで終わり
     ------------------------------------------------------------------------*/
 
+
+
+    /*アカウント作成を行うcreateAccountメソッドではProgressDialogクラスのshowメソッドを呼び出してダイアログを表
+      示させ、FirebaseAuthクラスのcreateUserWithEmailAndPassword
+      メソッドでアカウント作成を行います。createUserWithEmailAndPasswordメソッドの引数にはメールアドレス、パスワー
+      ドを与え、さらにaddOnCompleteListenerメソッドを呼び出してリスナーを設定します。
+    ------------------------------------------------------------------------*/
     private void createAccount(String email, String password) {
         // プログレスダイアログを表示する
         mProgress.show();
@@ -218,6 +238,12 @@ public class LoginActivity extends AppCompatActivity {
                 (mCreateAccountListener);
     }
 
+
+    /*ログイン処理を行うloginメソッドではProgressDialogクラスのshowメソッドを呼び出してダイアログを表示させ
+      FirebaseAuthクラスのsignInWithEmailAndPassword
+      メソッドでログイン処理を行います。signInWithEmailAndPasswordメソッドの引数にはメールアドレス、パスワードを
+      与え、さらにaddOnCompleteListenerメソッドを呼び出してリスナーを設定します。
+    ------------------------------------------------------------------------*/
     private void login(String email, String password) {
         // プログレスダイアログを表示する
         mProgress.show();
@@ -226,6 +252,10 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(mLoginListener);
     }
 
+
+    /*saveNameメソッドでは引数で受け取った表示名をPreferenceに保存します。忘れずにcommitメソッドを呼び出して
+      保存処理を反映させます。
+    ------------------------------------------------------------------------*/
     private void saveName(String name) {
         // Preferenceに保存する
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -233,4 +263,6 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString(Const.NameKEY, name);
         editor.commit();
     }
-}
+
+
+} //login activity 終わり。

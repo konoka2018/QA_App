@@ -50,8 +50,8 @@ onComplete	                Firebaseへの保存完了時に呼ばれる。
 
 public class QuestionSendActivity extends AppCompatActivity implements View.OnClickListener, DatabaseReference.CompletionListener {
 
-    private static final int PERMISSIONS_REQUEST_CODE = 100;
-    private static final int CHOOSER_REQUEST_CODE = 100;
+    private static final int PERMISSIONS_REQUEST_CODE = 100; //他の数値でも問題ありません。
+    private static final int CHOOSER_REQUEST_CODE = 100;     //他の数値でも問題ありません。
 
     private ProgressDialog mProgress;
     private EditText mTitleText;
@@ -62,12 +62,15 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
     private int mGenre;
     private Uri mPictureUri;
 
+    /*オンクリエイトはここからスタート
+    ------------------------------------------------------------------------*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question_send);
 
-        // 渡ってきたジャンルの番号を保持する
+        //Intentで渡ってきたジャンル番号を取り出してmGenreで保持します。
+        //そしてタイトルの設定と、UIをメンバ変数として保持します。
         Bundle extras = getIntent().getExtras();
         mGenre = extras.getInt("genre");
 
@@ -88,6 +91,9 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
 
     }
 
+
+    /*
+    ------------------------------------------------------------------------*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CHOOSER_REQUEST_CODE) {
@@ -122,7 +128,8 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             Matrix matrix = new Matrix();
             matrix.postScale(scale, scale);
 
-            Bitmap resizedImage =  Bitmap.createBitmap(image, 0, 0, imageWidth, imageHeight, matrix, true);
+            Bitmap resizedImage =  Bitmap.createBitmap(image, 0, 0, imageWidth, imageHeight,
+                    matrix, true);
 
             // BitmapをImageViewに設定する
             mImageView.setImageBitmap(resizedImage);
@@ -131,17 +138,27 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+
+    /*オンクリックはここからスタート
+    　添付画像を選択・表示するImageViewをタップした時と、投稿ボタンをタップした時の処理を行います。
+    ------------------------------------------------------------------------*/
     @Override
     public void onClick(View v) {
         if (v == mImageView) {
             // パーミッションの許可状態を確認する
+            // 外部ストレージへの書き込みが許可されているか確認
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                        PackageManager.PERMISSION_GRANTED) {
                     // 許可されている
+                    //許可されていればIntent連携でギャラリーとカメラを選択するダイアログを表示させるshowChooser
+                    // メソッドを呼び出し
                     showChooser();
                 } else {
                     // 許可されていないので許可ダイアログを表示する
-                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_CODE);
+                    //許可されていなければrequestPermissionsメソッドで許可ダイアログを表示させます
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_REQUEST_CODE);
 
                     return;
                 }
@@ -150,11 +167,13 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             }
         } else if (v == mSendButton) {
             // キーボードが出てたら閉じる
-            InputMethodManager im = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager im = (InputMethodManager)getSystemService(Context
+                    .INPUT_METHOD_SERVICE);
             im.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
             DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-            DatabaseReference genreRef = dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+            DatabaseReference genreRef = dataBaseReference.child(Const.ContentsPATH).child(String
+                    .valueOf(mGenre));
 
             Map<String, String> data = new HashMap<String, String>();
 
@@ -189,6 +208,8 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             BitmapDrawable drawable = (BitmapDrawable) mImageView.getDrawable();
 
             // 添付画像が設定されていれば画像を取り出してBASE64エンコードする
+            //画像はBASE64エンコードというデータを文字列に変換する仕組みを使って文字列にします。Firebaseは文字列や
+            // 数字しか保存できませんがこうすることで画像をFirebaseに保存することが可能となります。
             if (drawable != null) {
                 Bitmap bitmap = drawable.getBitmap();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -203,8 +224,12 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+
+    /*onRequestPermissionsResultメソッドは許可ダイアログでユーザが選択した結果を受け取ります。
+    ---------------------------------------------------------------------------------- */
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[]
+            grantResults) {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_CODE: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -216,6 +241,9 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+
+    /*onRequestPermissionsResultメソッドは許可ダイアログでユーザが選択した結果を受け取ります。
+    ---------------------------------------------------------------------------------- */
     private void showChooser() {
         // ギャラリーから選択するIntent
         Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -243,12 +271,16 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
     }
 
     @Override
+    //保存する際はDatabaseReferenceクラスのsetValueを使います
+    //第2引数にはCompletionListenerクラスを指定します
     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
         mProgress.dismiss();
 
         if (databaseError == null) {
             finish();
         } else {
+            //画像を保存する可能性があり、保存するのに時間がかかることが予想されるのでCompletionListenerクラスで
+            // 完了を受け取るようにします。
             Snackbar.make(findViewById(android.R.id.content), "投稿に失敗しました", Snackbar.LENGTH_LONG).show();
         }
     }

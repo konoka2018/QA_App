@@ -3,6 +3,7 @@ package jp.techacademy.konoka.fujiwara.qa_app;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+//Firebaseから取得した質問のデータを保持するモデルクラスとしてQuestionクラスを作成します。
 public class Question implements Serializable {
     private String mTitle;
     private String mBody;

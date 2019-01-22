@@ -1,13 +1,17 @@
 package jp.techacademy.konoka.fujiwara.qa_app;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -15,8 +19,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class QuestionDetailActivity extends AppCompatActivity {
 
@@ -28,11 +35,11 @@ public class QuestionDetailActivity extends AppCompatActivity {
 
     /*お気に入りボタンの為のboolean型のprivate変数を用意
     ------------------------------------------------------------------- */
-    private final boolean yes_fav = true;
-    private final boolean No_fav = false;
+    boolean yes_fav;
 
 
-    /*???
+
+    /* ???
     ------------------------------------------------------------------- */
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
@@ -123,44 +130,52 @@ public class QuestionDetailActivity extends AppCompatActivity {
             }
         });
 
-        DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
+        final DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
         mAnswerRef = dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mQuestion
                 .getGenre())).child(mQuestion.getQuestionUid()).child(Const.AnswersPATH);
         mAnswerRef.addChildEventListener(mEventListener);
 
 
 
-        /* ここからお気に入り　ボタン表示・非表示
-        ----------------------------------------------------------------*/
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        // ログインしていなければログイン画面に遷移させる
-        if (user == null) {
-            findViewById(R.id.favButton1).setVisibility(View.GONE);
-        }
-
-
          /* お気に入りボタンを押した　お気に入りに追加する。
+            ここからお気に入り　ボタン表示・非表示
         ----------------------------------------------------------------*/
         final Button mfavButton1 = (Button) findViewById(R.id.favButton1);
         mfavButton1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                    DatabaseReference dataBaseReference = FirebaseDatabase.getInstance()
+                            .getReference();
+                    DatabaseReference favoriteRef = dataBaseReference.child(Const.favoritePATH)
+                            .child(user.getUid()).child(mQuestion.getQuestionUid());
+
                     if(yes_fav) {
-                        mfavButton1.setText("お気に入り済み");
+                            favoriteRef.removeValue();
+                            mfavButton1.setText("お気に入り登録");
+                            int color = ContextCompat.getColor(getApplicationContext(),R.color
+                                    .colorPrimary);
+                            mfavButton1.setBackgroundColor(color);
 
+                            yes_fav = false;
 
-                    }else {
-                        //???
+                        }else{
+                            Map<String, String> favorite = new HashMap<String, String>();
+                            favorite.put("Genre", String.valueOf(mQuestion.getGenre()));
+                            favoriteRef.setValue(favorite);
+
+                            mfavButton1.setText("お気に入り解除");
+                            mfavButton1.setBackgroundColor(Color.GRAY);
+
+                            yes_fav = true;
+                        }
                     }
 
-                }//onclickの蓋
-        });
+                });//onclickの蓋
 
-
-
-    }/*オンクリエイトここから
+    }/*オンクリエイト終わり。
    ------------------------------------------------------------------- */
 
 } //終わりのカッコ

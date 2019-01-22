@@ -92,7 +92,8 @@ public class MainActivity extends AppCompatActivity
                             String answerBody = (String) temp.get("body");
                             String answerName = (String) temp.get("name");
                             String answerUid = (String) temp.get("uid");
-                            Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
+                            Answer answer = new Answer(answerBody, answerName, answerUid, (String)
+                                    key);
                             question.getAnswers().add(answer);
                         }
                     }
@@ -118,6 +119,9 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+
+    /*オンクリエイトはここからスタート
+    ------------------------------------------------------------------------*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,7 +154,6 @@ public class MainActivity extends AppCompatActivity
                     intent.putExtra("genre", mGenre);
                     startActivity(intent);
                 }
-                // --- ここまで修正 ---
             }
         });
 
@@ -164,7 +167,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // --- ここから ---
+
         // Firebase
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -173,7 +176,6 @@ public class MainActivity extends AppCompatActivity
         mAdapter = new QuestionsListAdapter(this);
         mQuestionArrayList = new ArrayList<Question>();
         mAdapter.notifyDataSetChanged();
-        // --- ここまで追加する ---
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -185,6 +187,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+    /*オンクリエイトはここまで
+    ------------------------------------------------------------------------*/
+
 
     @Override
     protected void onResume() {
@@ -196,6 +201,8 @@ public class MainActivity extends AppCompatActivity
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
     }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -219,7 +226,7 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    /*ナビゲーションドロワーの設定 2
+    /*メニューを選択するとタイトルが変更される。
     ------------------------------------------------------------------------------------- */
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -237,13 +244,18 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_compter) {
             mToolbar.setTitle("コンピューター");
             mGenre = 4;
+        }else if (id == R.id.nav_fav) {
+            mToolbar.setTitle("お気に入り");
+            mGenre = 5;
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
 
 
-        // --- ここから ---
+        /* Firebaseに対してそのジャンルの質問のデータの変化を受け取るように
+        　　先ほど作成したChildEventListenerを設定
+        ------------------------------------------------------------------------------------- */
         // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
         mQuestionArrayList.clear();
         mAdapter.setQuestionArrayList(mQuestionArrayList);
@@ -255,7 +267,7 @@ public class MainActivity extends AppCompatActivity
         }
         mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
         mGenreRef.addChildEventListener(mEventListener);
-        // --- ここまで追加する ---
+
         return true;
     }
 

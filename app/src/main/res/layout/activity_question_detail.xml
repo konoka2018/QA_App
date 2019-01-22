@@ -24,7 +24,7 @@
         android:layout_marginTop="4dp"
         android:layout_below="@+id/listView"
         android:background="@drawable/custom_button"
-        android:text="お気に入り"
+        android:text="お気に入り登録"
         android:textColor="@color/colorButtonText"/>
 
     <android.support.design.widget.FloatingActionButton

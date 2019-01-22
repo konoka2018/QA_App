@@ -107,7 +107,8 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             }
 
             // 画像を取得
-            Uri uri = (data == null || data.getData() == null) ? mPictureUri : data.getData();
+            Uri uri = (data == null || data.getData() == null) ? mPictureUri : data.getData
+                    ();
 
             // URIからBitmapを取得する
             Bitmap image;
@@ -123,12 +124,14 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             // 取得したBimapの長辺を500ピクセルにリサイズする
             int imageWidth = image.getWidth();
             int imageHeight = image.getHeight();
-            float scale = Math.min((float) 500 / imageWidth, (float) 500 / imageHeight); // (1)
+            float scale = Math.min((float) 500 / imageWidth, (float) 500 / imageHeight);
+            // (1)
 
             Matrix matrix = new Matrix();
             matrix.postScale(scale, scale);
 
-            Bitmap resizedImage =  Bitmap.createBitmap(image, 0, 0, imageWidth, imageHeight,
+            Bitmap resizedImage =  Bitmap.createBitmap(image, 0, 0, imageWidth,
+                    imageHeight,
                     matrix, true);
 
             // BitmapをImageViewに設定する
@@ -151,13 +154,15 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
                 if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
                         PackageManager.PERMISSION_GRANTED) {
                     // 許可されている
-                    //許可されていればIntent連携でギャラリーとカメラを選択するダイアログを表示させるshowChooser
+                    //許可されていればIntent連携でギャラリーとカメラを選択するダイアログを表示させる
+                    // showChooser
                     // メソッドを呼び出し
                     showChooser();
                 } else {
                     // 許可されていないので許可ダイアログを表示する
                     //許可されていなければrequestPermissionsメソッドで許可ダイアログを表示させます
-                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    requestPermissions(new String[]{Manifest.permission
+                                    .WRITE_EXTERNAL_STORAGE},
                             PERMISSIONS_REQUEST_CODE);
 
                     return;
@@ -169,10 +174,13 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             // キーボードが出てたら閉じる
             InputMethodManager im = (InputMethodManager)getSystemService(Context
                     .INPUT_METHOD_SERVICE);
-            im.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            im.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager
+                    .HIDE_NOT_ALWAYS);
 
-            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-            DatabaseReference genreRef = dataBaseReference.child(Const.ContentsPATH).child(String
+            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance()
+                    .getReference();
+            DatabaseReference genreRef = dataBaseReference.child(Const.ContentsPATH).child
+                    (String
                     .valueOf(mGenre));
 
             Map<String, String> data = new HashMap<String, String>();
@@ -208,13 +216,15 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
             BitmapDrawable drawable = (BitmapDrawable) mImageView.getDrawable();
 
             // 添付画像が設定されていれば画像を取り出してBASE64エンコードする
-            //画像はBASE64エンコードというデータを文字列に変換する仕組みを使って文字列にします。Firebaseは文字列や
+            //画像はBASE64エンコードというデータを文字列に変換する仕組みを使って文字列にします。
+            // Firebaseは文字列や
             // 数字しか保存できませんがこうすることで画像をFirebaseに保存することが可能となります。
             if (drawable != null) {
                 Bitmap bitmap = drawable.getBitmap();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-                String bitmapString = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                String bitmapString = Base64.encodeToString(baos.toByteArray(),
+                        Base64.DEFAULT);
 
                 data.put("image", bitmapString);
             }
@@ -279,9 +289,11 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
         if (databaseError == null) {
             finish();
         } else {
-            //画像を保存する可能性があり、保存するのに時間がかかることが予想されるのでCompletionListenerクラスで
+            //画像を保存する可能性があり、保存するのに時間がかかることが予想されるのでCompletionListener
+            // クラスで
             // 完了を受け取るようにします。
-            Snackbar.make(findViewById(android.R.id.content), "投稿に失敗しました", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(findViewById(android.R.id.content), "投稿に失敗しました",
+                    Snackbar.LENGTH_LONG).show();
         }
     }
 }

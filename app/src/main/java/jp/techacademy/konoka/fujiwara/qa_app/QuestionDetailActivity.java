@@ -155,7 +155,8 @@ public class QuestionDetailActivity extends AppCompatActivity {
                     if(yes_fav) {
                             favoriteRef.removeValue();
                             mfavButton1.setText("お気に入り登録");
-                            int color = ContextCompat.getColor(getApplicationContext(),R.color
+                            int color = ContextCompat.getColor(getApplicationContext(),R
+                                    .color
                                     .colorPrimary);
                             mfavButton1.setBackgroundColor(color);
 

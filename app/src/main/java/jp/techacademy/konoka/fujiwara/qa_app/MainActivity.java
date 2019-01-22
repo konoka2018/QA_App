@@ -33,14 +33,18 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
     private Toolbar mToolbar; //ドロワーの為のメンバ
-    private int mGenre = 0; //これよく分からない。
+    private int mGenre = 0;
 
+    // firebase関連の変数たち。
     private DatabaseReference mDatabaseReference;
     private DatabaseReference mGenreRef;
     private ListView mListView;
     private ArrayList<Question> mQuestionArrayList;
     private QuestionsListAdapter mAdapter;
 
+
+     /*　実際のLISTの中身
+    ------------------------------------------------------------------------------------- */
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -76,6 +80,13 @@ public class MainActivity extends AppCompatActivity
             mAdapter.notifyDataSetChanged();
         }
 
+
+         /*　データに変化があった際に自動で呼び出されます
+
+            firebaseに保存されているデータが変更された場合です
+            例えばAさんがアプリを使ってるときに
+            Bさんがデータを更新すると、Aさんの方でも画面が更新されるための仕組みです。
+        ------------------------------------------------------------------------------------- */
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
@@ -101,7 +112,7 @@ public class MainActivity extends AppCompatActivity
                     mAdapter.notifyDataSetChanged();
                 }
             }
-        }
+        } //onChildChange 終わり。
 
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
@@ -157,7 +168,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        // ナビゲーションドロワーの設定
+        /*　ナビゲーションドロワーの設定
+        ------------------------------------------------------------------------*/
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, mToolbar,
                 R.string.app_name, R.string.app_name);
@@ -168,15 +180,21 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 
-        // Firebase
+        /*　Firebaseを参照する
+        ------------------------------------------------------------------------*/
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        // ListViewの準備
+
+        /*　ListViewの準備
+        ------------------------------------------------------------------------*/
         mListView = (ListView) findViewById(R.id.listView);
         mAdapter = new QuestionsListAdapter(this);
         mQuestionArrayList = new ArrayList<Question>();
         mAdapter.notifyDataSetChanged();
 
+
+        /*　
+        ------------------------------------------------------------------------*/
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -244,13 +262,13 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_compter) {
             mToolbar.setTitle("コンピューター");
             mGenre = 4;
-        }else if (id == R.id.nav_fav) {
-            mToolbar.setTitle("お気に入り");
-            mGenre = 5;
         }
 
+        // 選択したあとにドロワーを閉じるための処理
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+
+
 
 
         /* Firebaseに対してそのジャンルの質問のデータの変化を受け取るように
@@ -266,12 +284,18 @@ public class MainActivity extends AppCompatActivity
             mGenreRef.removeEventListener(mEventListener);
         }
         mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+
+        //onChildAddedの部分をリンク。
         mGenreRef.addChildEventListener(mEventListener);
 
         return true;
     }
-
-
-
-
+    
 }//mainactivity ここで終わり。
+
+
+ /* MEMO
+ ------------------------------------------------------------------------------------- */
+
+//addEventListenerをするとfirebaseにデータを取りにいって、
+// データが取れるとonChildAddedが実行されるという仕組みです.

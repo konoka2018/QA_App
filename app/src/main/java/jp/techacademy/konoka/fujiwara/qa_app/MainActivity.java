@@ -34,13 +34,18 @@ public class MainActivity extends AppCompatActivity
 
     private Toolbar mToolbar; //ドロワーの為のメンバ
     private int mGenre = 0;
+    private int mGenre2 = 0;
+
+
 
     // firebase関連の変数たち。
     private DatabaseReference mDatabaseReference;
     private DatabaseReference mGenreRef;
+    private DatabaseReference mFavorite;
     private ListView mListView;
     private ArrayList<Question> mQuestionArrayList;
     private QuestionsListAdapter mAdapter;
+    private Question mQuestion;
 
 
      /*　実際のLISTの中身
@@ -131,6 +136,7 @@ public class MainActivity extends AppCompatActivity
     };
 
 
+
     /*オンクリエイトはここからスタート
     ------------------------------------------------------------------------*/
     @Override
@@ -145,7 +151,6 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // --- ここから ---
                 // ジャンルを選択していない場合（mGenre == 0）はエラーを表示するだけ
                 if (mGenre == 0) {
                     Snackbar.make(view, "ジャンルを選択して下さい", Snackbar.LENGTH_LONG).show();
@@ -262,13 +267,15 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_compter) {
             mToolbar.setTitle("コンピューター");
             mGenre = 4;
+        }else if (id == R.id.nav_fav) {
+            mToolbar.setTitle("お気に入り");
+            mGenre2 = 0;
         }
+
 
         // 選択したあとにドロワーを閉じるための処理
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
-
-
 
 
         /* Firebaseに対してそのジャンルの質問のデータの変化を受け取るように
@@ -283,15 +290,30 @@ public class MainActivity extends AppCompatActivity
         if (mGenreRef != null) {
             mGenreRef.removeEventListener(mEventListener);
         }
-        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
 
+        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
         //onChildAddedの部分をリンク。
         mGenreRef.addChildEventListener(mEventListener);
 
+
+        //-----新規追加-------
+        // 選択したジャンルにリスナーを登録する
+        if (mFavorite != null) {
+            mFavorite.removeEventListener(mEventListener);
+        }
+
+        mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre2))
+                .child(mQuestion.getQuestionUid());
+        mFavorite.addChildEventListener(mEventListener);
+        //-----新規追加-------
+
+
         return true;
     }
-    
+
 }//mainactivity ここで終わり。
+
+
 
 
  /* MEMO

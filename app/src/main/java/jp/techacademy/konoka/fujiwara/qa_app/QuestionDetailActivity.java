@@ -33,6 +33,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
 
     private DatabaseReference mAnswerRef;
 
+
     /*お気に入りボタンの為のboolean型のprivate変数を用意
     ------------------------------------------------------------------- */
     boolean yes_fav;

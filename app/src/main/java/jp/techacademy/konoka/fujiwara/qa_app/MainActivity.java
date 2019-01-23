@@ -34,8 +34,6 @@ public class MainActivity extends AppCompatActivity
 
     private Toolbar mToolbar; //ドロワーの為のメンバ
     private int mGenre = 0;
-    private int mGenre2 = 0;
-
 
 
     // firebase関連の変数たち。
@@ -48,8 +46,8 @@ public class MainActivity extends AppCompatActivity
     private Question mQuestion;
 
 
-     /*　実際のLISTの中身
-    ------------------------------------------------------------------------------------- */
+    /*　実際のLISTの中身
+   ------------------------------------------------------------------------------------- */
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -86,12 +84,12 @@ public class MainActivity extends AppCompatActivity
         }
 
 
-         /*　データに変化があった際に自動で呼び出されます
+        /*　データに変化があった際に自動で呼び出されます
 
-            firebaseに保存されているデータが変更された場合です
-            例えばAさんがアプリを使ってるときに
-            Bさんがデータを更新すると、Aさんの方でも画面が更新されるための仕組みです。
-        ------------------------------------------------------------------------------------- */
+           firebaseに保存されているデータが変更された場合です
+           例えばAさんがアプリを使ってるときに
+           Bさんがデータを更新すると、Aさんの方でも画面が更新されるための仕組みです。
+       ------------------------------------------------------------------------------------- */
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
@@ -135,6 +133,33 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+
+    private ChildEventListener mFavoriteListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            //ここがお気に入りを更新する部分です！
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
 
 
     /*オンクリエイトはここからスタート
@@ -269,7 +294,7 @@ public class MainActivity extends AppCompatActivity
             mGenre = 4;
         }else if (id == R.id.nav_fav) {
             mToolbar.setTitle("お気に入り");
-            mGenre2 = 0;
+            mGenre = 0;
         }
 
 
@@ -286,27 +311,28 @@ public class MainActivity extends AppCompatActivity
         mAdapter.setQuestionArrayList(mQuestionArrayList);
         mListView.setAdapter(mAdapter);
 
-        // 選択したジャンルにリスナーを登録する
-        if (mGenreRef != null) {
-            mGenreRef.removeEventListener(mEventListener);
+        if(mGenre == 0){
+
+            //お気に入りを取得する処理を記入する
+            if (mFavorite != null) {
+                mFavorite.removeEventListener(mFavoriteListener);
+            }
+
+            mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre))
+                    .child(mQuestion.getQuestionUid());
+            mFavorite.addChildEventListener(mFavoriteListener);
+
+            }else {
+
+            // 選択したジャンルにリスナーを登録する
+            if (mGenreRef != null) {
+                mGenreRef.removeEventListener(mEventListener);
+            }
+
+            mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+            //onChildAddedの部分をリンク。
+            mGenreRef.addChildEventListener(mEventListener);
         }
-
-        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-        //onChildAddedの部分をリンク。
-        mGenreRef.addChildEventListener(mEventListener);
-
-
-        //-----新規追加-------
-        // 選択したジャンルにリスナーを登録する
-        if (mFavorite != null) {
-            mFavorite.removeEventListener(mEventListener);
-        }
-
-        mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre2))
-                .child(mQuestion.getQuestionUid());
-        mFavorite.addChildEventListener(mEventListener);
-        //-----新規追加-------
-
 
         return true;
     }

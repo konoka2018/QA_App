@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity
     private Question mQuestion;
 
 
+
     /*　実際のLISTの中身
    ------------------------------------------------------------------------------------- */
     private ChildEventListener mEventListener = new ChildEventListener() {
@@ -234,6 +235,10 @@ public class MainActivity extends AppCompatActivity
                 startActivity(intent);
             }
         });
+
+        Bundle extras = getIntent().getExtras();
+        mQuestion = (Question) extras.get("question");
+
     }
     /*オンクリエイトはここまで
     ------------------------------------------------------------------------*/
@@ -318,8 +323,11 @@ public class MainActivity extends AppCompatActivity
                 mFavorite.removeEventListener(mFavoriteListener);
             }
 
+            //mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre));
+
             mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre))
-                    .child(mQuestion.getQuestionUid());
+                    .child(String.valueOf(mQuestion.getGenre())).child(mQuestion.getQuestionUid())
+                    .child(Const.AnswersPATH);
             mFavorite.addChildEventListener(mFavoriteListener);
 
             }else {
@@ -330,7 +338,6 @@ public class MainActivity extends AppCompatActivity
             }
 
             mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-            //onChildAddedの部分をリンク。
             mGenreRef.addChildEventListener(mEventListener);
         }
 

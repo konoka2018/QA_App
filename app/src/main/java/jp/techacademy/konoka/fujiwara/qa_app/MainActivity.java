@@ -44,7 +44,8 @@ public class MainActivity extends AppCompatActivity
     private ListView mListView;
     private ArrayList<Question> mQuestionArrayList;
     private QuestionsListAdapter mAdapter;
-    private Question mQuestion;
+
+
 
 
     /*　実際のLISTの中身
@@ -312,6 +313,21 @@ public class MainActivity extends AppCompatActivity
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
+
+        // 未ログイン状態の場合、お気に入りを非表示にする
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user == null) {
+            Menu menu = navigationView.getMenu();
+            MenuItem favItem = menu.findItem(R.id.nav_fav);
+            favItem.setVisible(false);
+
+        } else {
+            Menu menu = navigationView.getMenu();
+            MenuItem favItem = menu.findItem(R.id.nav_fav);
+            favItem.setVisible(true);
+        }
     }
 
 
@@ -378,21 +394,16 @@ public class MainActivity extends AppCompatActivity
 
         //お気に入りを取得する処理を記入する
         if (mGenre == 0) {
-
                 //お気に入りを取得する処理を記入する
                 if (mFavorite != null) {
                     mFavorite.removeEventListener(mFavoriteListener);
                 }
-
-                //mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf
-                // (mGenre));
 
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 mFavorite = mDatabaseReference.child(Const.favoritePATH).child(user.getUid());
                 mFavorite.addChildEventListener(mFavoriteListener);
 
             } else {
-
                 // 選択したジャンルにリスナーを登録する
                 if (mGenreRef != null) {
                     mGenreRef.removeEventListener(mEventListener);

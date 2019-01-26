@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         Bundle extras = getIntent().getExtras();
-        mQuestion = (Question) extras.get("question");
+        //mQuestion = (Question) extras.get("question");
 
     }
     /*オンクリエイトはここまで

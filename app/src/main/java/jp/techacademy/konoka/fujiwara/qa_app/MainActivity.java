@@ -160,6 +160,38 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             // mEventListenerのonChildAddedと同じ処理
+                            HashMap map = (HashMap) dataSnapshot.getValue();
+                            String title = (String) map.get("title");
+                            String body = (String) map.get("body");
+                            String name = (String) map.get("name");
+                            String uid = (String) map.get("uid");
+                            String imageString = (String) map.get("image");
+                            byte[] bytes;
+                            if (imageString != null) {
+                                bytes = Base64.decode(imageString, Base64.DEFAULT);
+                            } else {
+                                bytes = new byte[0];
+                            }
+
+                            ArrayList<Answer> answerArrayList = new ArrayList<Answer>();
+                            HashMap answerMap = (HashMap) map.get("answers");
+
+                            if (answerMap != null) {
+                                for (Object key : answerMap.keySet()) {
+                                    HashMap temp = (HashMap) answerMap.get((String) key);
+                                    String answerBody = (String) temp.get("body");
+                                    String answerName = (String) temp.get("name");
+                                    String answerUid = (String) temp.get("uid");
+                                    Answer answer = new Answer(answerBody, answerName, answerUid,
+                                            (String) key);
+                                    answerArrayList.add(answer);
+                                }
+                            }
+
+                            Question question = new Question(title, body, name, uid, dataSnapshot
+                                    .getKey(), mGenre, bytes, answerArrayList);
+                            mQuestionArrayList.add(question);
+                            mAdapter.notifyDataSetChanged();
                         }
 
                         @Override
@@ -254,8 +286,7 @@ public class MainActivity extends AppCompatActivity
 
         /*　
         ------------------------------------------------------------------------*/
-        mListView.setOnItemClickListener(
-                new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // Questionのインスタンスを渡して質問詳細画面を起動する
@@ -266,7 +297,6 @@ public class MainActivity extends AppCompatActivity
         });
 
         Bundle extras = getIntent().getExtras();
-        //mQuestion = (Question) extras.get("question");
 
     }
     /*オンクリエイトはここまで

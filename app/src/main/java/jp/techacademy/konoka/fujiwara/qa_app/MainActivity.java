@@ -24,13 +24,14 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener{
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     private Toolbar mToolbar; //ドロワーの為のメンバ
     private int mGenre = 0;
@@ -44,7 +45,6 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<Question> mQuestionArrayList;
     private QuestionsListAdapter mAdapter;
     private Question mQuestion;
-
 
 
     /*　実際のLISTの中身
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity
             HashMap map = (HashMap) dataSnapshot.getValue();
 
             // 変更があったQuestionを探す
-            for (Question question: mQuestionArrayList) {
+            for (Question question : mQuestionArrayList) {
                 if (dataSnapshot.getKey().equals(question.getQuestionUid())) {
                     // このアプリで変更がある可能性があるのは回答(Answer)のみ
                     question.getAnswers().clear();
@@ -136,9 +136,37 @@ public class MainActivity extends AppCompatActivity
 
 
     private ChildEventListener mFavoriteListener = new ChildEventListener() {
+
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             //ここがお気に入りを更新する部分です！
+
+            //取得したデータの中身を取得しています
+            HashMap<String, String> map = (HashMap<String, String>) dataSnapshot.getValue();
+
+            //String favoriteQuestionUid = dataSnapshot.getKey();
+            String favoriteQuestionUid = dataSnapshot.getKey();
+
+            //取得したデータの中身に Genre というキーでジャンル番号が保存されているのでそれを取得します
+            String genre = map.get("Genre");
+
+            //contents->ジャンル番号->質問ID というツリーのデータを取得するためのパスを指定しています
+            mDatabaseReference.child(Const.ContentsPATH)
+                    .child(String.valueOf(genre))
+                    .child(favoriteQuestionUid)
+
+                    //上記ツリーのデータが取得できたときのイベントを設定しています
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // mEventListenerのonChildAddedと同じ処理
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
         }
 
         @Override
@@ -226,7 +254,8 @@ public class MainActivity extends AppCompatActivity
 
         /*　
         ------------------------------------------------------------------------*/
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // Questionのインスタンスを渡して質問詳細画面を起動する
@@ -249,7 +278,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
 
         // 1:趣味を既定の選択とする
-        if(mGenre == 0) {
+        if (mGenre == 0) {
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
@@ -297,7 +326,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_compter) {
             mToolbar.setTitle("コンピューター");
             mGenre = 4;
-        }else if (id == R.id.nav_fav) {
+        } else if (id == R.id.nav_fav) {
             mToolbar.setTitle("お気に入り");
             mGenre = 0;
         }
@@ -316,33 +345,36 @@ public class MainActivity extends AppCompatActivity
         mAdapter.setQuestionArrayList(mQuestionArrayList);
         mListView.setAdapter(mAdapter);
 
-        if(mGenre == 0){
 
-            //お気に入りを取得する処理を記入する
-            if (mFavorite != null) {
-                mFavorite.removeEventListener(mFavoriteListener);
+        //お気に入りを取得する処理を記入する
+        if (mGenre == 0) {
+
+                //お気に入りを取得する処理を記入する
+                if (mFavorite != null) {
+                    mFavorite.removeEventListener(mFavoriteListener);
+                }
+
+                //mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf
+                // (mGenre));
+
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                mFavorite = mDatabaseReference.child(Const.favoritePATH).child(user.getUid());
+                mFavorite.addChildEventListener(mFavoriteListener);
+
+            } else {
+
+                // 選択したジャンルにリスナーを登録する
+                if (mGenreRef != null) {
+                    mGenreRef.removeEventListener(mEventListener);
+                }
+
+                mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf
+                        (mGenre));
+                mGenreRef.addChildEventListener(mEventListener);
             }
-
-            //mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre));
-
-            mFavorite = mDatabaseReference.child(Const.favoritePATH).child(String.valueOf(mGenre))
-                    .child(String.valueOf(mQuestion.getGenre())).child(mQuestion.getQuestionUid())
-                    .child(Const.AnswersPATH);
-            mFavorite.addChildEventListener(mFavoriteListener);
-
-            }else {
-
-            // 選択したジャンルにリスナーを登録する
-            if (mGenreRef != null) {
-                mGenreRef.removeEventListener(mEventListener);
-            }
-
-            mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-            mGenreRef.addChildEventListener(mEventListener);
+            return true;
         }
 
-        return true;
-    }
 
 }//mainactivity ここで終わり。
 
